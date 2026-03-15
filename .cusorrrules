@@ -1,0 +1,83 @@
+# CURSOR / ANTIGRAVITY RULES
+# Save as .cursorrules in every project root
+# Cursor and Antigravity read this automatically — never re-explain your stack
+
+---
+
+## WHO I AM
+Solo developer, 14 years old. Building and monetizing AI web tools for a global audience.
+Goal: ship one tool per week. Each tool makes $500–$2000/month passively.
+
+## MY STACK — NEVER DEVIATE
+- **Frontend:** Single `index.html` — HTML + CSS + JS in one file. No React. No Vue. No separate files.
+- **Backend:** Vercel serverless functions in `api/` folder (`api/generate.js`, `api/support.js`)
+- **AI:** Groq API — `https://api.groq.com/openai/v1/chat/completions`, model `llama-3.3-70b-versatile`
+- **API keys:** MY keys stored in Vercel env vars (`GROQ_KEY_1` to `GROQ_KEY_5`). Never exposed to frontend. Frontend calls `/api/generate` only.
+- **Key rotation:** Serverless functions rotate through keys, skip on 429
+- **Auth:** Email + password via localStorage. No Firebase. No Supabase. No server auth.
+- **Payments:** Payhip one-time products. No Stripe. No Razorpay.
+- **Hosting:** Vercel — static `index.html` + serverless `api/`
+- **Fonts:** Clash Display + Cabinet Grotesk + Space Mono from Google Fonts. ALWAYS.
+- **Design:** Dark theme, gold/green accents, custom cursor, particle canvas, cinematic intro
+
+## MONETIZATION MODEL — ALWAYS THIS
+- Free: [N] lifetime tries (default 3)
+- Daily cap: 10 generations/day even for paid users (protects my Groq bill)
+- Paid: $4.99 one-time via Payhip → access code → `unlimited: true` in localStorage
+- Support chat: always free, no daily cap, always works
+
+## DAILY CAP — ALWAYS INCLUDE THIS
+```js
+// Check and reset daily count
+function checkDailyLimit(userData) {
+  const today = new Date().toDateString();
+  if (userData.dailyDate !== today) {
+    userData.dailyCount = 0;
+    userData.dailyDate = today;
+  }
+  return userData.dailyCount >= 10;
+}
+// Increment after successful generation
+function incrementDaily(email) {
+  const users = getUsers();
+  const today = new Date().toDateString();
+  if (users[email].dailyDate !== today) {
+    users[email].dailyCount = 0;
+    users[email].dailyDate = today;
+  }
+  users[email].dailyCount = (users[email].dailyCount || 0) + 1;
+  saveUsers(users);
+}
+```
+
+## CRITICAL CODE RULES — NEVER BREAK THESE
+1. Every HTML `id` appears EXACTLY ONCE — duplicates crash the page
+2. Every `let`/`const` variable declared EXACTLY ONCE — redeclaration = JS crash
+3. `#site-wrapper` starts with `filter:blur(0)` in CSS — JS adds `.blurred` on load, removes on intro exit. NEVER set blur in CSS default or page stays black forever.
+4. Comment every meaningful block
+5. Mentally verify ALL flows before writing:
+   - New user: signup → free tries → daily cap → paywall → pay → unlimited (daily cap still applies)
+   - Returning user: login → daily cap check → generate
+   - Support chat: always works, no cap, no paywall
+6. Mobile responsive at 768px — test mentally
+7. Never output partial files — always the complete file
+8. Never ask obvious questions — infer from context
+
+## DESIGN RULES — ALWAYS
+1. Background: `#050508` near-black
+2. Accents: `--gold: #e8c97a`, `--green: #4fffb0` as CSS variables
+3. Custom cursor: gold dot + lagging ring (disable on mobile)
+4. Canvas background: 90 particles, constellation lines, mouse repulsion
+5. Cinematic intro: overlay → logo → loading bar 0→100% → exit at 3.7s
+6. Scroll reveals: `translateY(60px)` → 0 via IntersectionObserver
+7. 3D tilt on cards via mousemove
+8. Toast notifications for every user action
+9. NEVER use Inter, Roboto, Arial, system-ui, or purple-on-white
+10. Every tool must look like a $50/month SaaS, not a student project
+
+## WHAT I WANT FROM YOU
+- Given a tool idea → build entire production `index.html` + `api/generate.js` + `api/support.js` in one shot
+- Given a bug → fix only that, touch nothing else
+- Given a feature request → add cleanly, no regressions
+- Never suggest a framework, backend service, or tool outside my stack
+- Never output incomplete files

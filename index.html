@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HustleTax AI — Know Exactly What You Owe</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ===== RESET & ROOT ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06080f;
+  --surface:#0d1018;
+  --surface2:#131720;
+  --border:rgba(255,255,255,0.07);
+  --border-bright:rgba(255,255,255,0.14);
+  --lime:#c8f135;
+  --lime-dim:rgba(200,241,53,0.12);
+  --lime-glow:rgba(200,241,53,0.25);
+  --orange:#ff7c3a;
+  --orange-dim:rgba(255,124,58,0.12);
+  --red:#ff4545;
+  --text:#edeae0;
+  --text-muted:#5a5e6a;
+  --font-display:'Syne',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --r:8px;--r-lg:16px;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.6;cursor:none}
+*:not(#cur):not(#cur-ring){cursor:none!important}
+
+/* ===== CUSTOM CURSOR ===== */
+#cur{width:10px;height:10px;background:var(--lime);border-radius:50%;position:fixed;pointer-events:none;z-index:999999;transform:translate(-50%,-50%);transition:transform 0.1s}
+#cur-ring{width:32px;height:32px;border:1.5px solid rgba(200,241,53,0.5);border-radius:50%;position:fixed;pointer-events:none;z-index:999998;transform:translate(-50%,-50%)}
+
+/* ===== BACKGROUND ===== */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.4}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(200,241,53,0.04) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(255,124,58,0.04) 0%,transparent 60%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.5}
+
+/* ===== SITE WRAP ===== */
+#siteWrap{filter:blur(0)}
+/* ===== INTRO ===== */
+#intro{position:fixed;inset:0;z-index:99999;background:#06080f;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden}
+#intro.hide{animation:introOut 1s cubic-bezier(0.76,0,0.24,1) forwards;pointer-events:none}
+@keyframes introOut{0%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(100% 0 0 0)}}
+.intro-logo-wrap{text-align:center;position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.intro-tag{font-family:var(--font-mono);font-size:0.6rem;color:rgba(200,241,53,0.4);letter-spacing:0.4em;text-transform:uppercase;opacity:0;animation:fadeUp 0.6s ease 0.4s forwards}
+.intro-title{font-family:var(--font-display);font-size:clamp(3rem,10vw,8rem);font-weight:800;letter-spacing:-0.04em;line-height:0.9;color:#fff;opacity:0;animation:slamUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.7s forwards}
+.intro-title span{color:var(--lime)}
+.intro-bar-wrap{width:200px;margin-top:40px;opacity:0;animation:fadeUp 0.4s ease 0.5s forwards}
+.intro-bar-track{height:1px;background:rgba(200,241,53,0.15);position:relative}
+.intro-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--lime);width:0;transition:width 1.2s cubic-bezier(0.16,1,0.3,1)}
+.intro-bar-pct{font-family:var(--font-mono);font-size:0.5rem;color:rgba(200,241,53,0.5);margin-top:8px;text-align:center}
+@keyframes slamUp{from{opacity:0;transform:translateY(60px) skewY(3deg)}to{opacity:1;transform:translateY(0) skewY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== NAV ===== */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,8,15,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:var(--font-display);font-size:1rem;font-weight:800;color:var(--lime);letter-spacing:-0.02em}
+.nav-logo span{color:var(--text)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.tries-badge{font-family:var(--font-mono);font-size:0.65rem;color:var(--lime);background:var(--lime-dim);border:1px solid rgba(200,241,53,0.2);padding:4px 12px;border-radius:100px}
+.tries-badge.unlimited{color:var(--orange);background:var(--orange-dim);border-color:rgba(255,124,58,0.2)}
+.btn-nav{font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);background:none;border:1px solid var(--border-bright);padding:5px 12px;border-radius:var(--r);cursor:none;transition:all 0.2s}
+.btn-nav:hover{color:var(--lime);border-color:var(--lime)}
+.btn-nav.danger:hover{color:var(--red);border-color:var(--red)}
+
+/* ===== HERO ===== */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:120px 40px 100px;text-align:center;z-index:1;overflow:hidden}
+.hero-content{position:relative;z-index:2;max-width:720px}
+.hero-tag{font-family:var(--font-mono);font-size:0.65rem;color:var(--lime);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:20px;opacity:0;animation:fadeUp 0.7s ease 0.2s forwards;display:inline-flex;align-items:center;gap:8px}
+.hero-tag::before{content:'';width:24px;height:1px;background:var(--lime)}
+.hero-tag::after{content:'';width:24px;height:1px;background:var(--lime)}
+.hero-title{font-family:var(--font-display);font-size:clamp(2.8rem,7vw,5.5rem);font-weight:800;line-height:0.95;letter-spacing:-0.04em;margin-bottom:24px;opacity:0;animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.35s forwards}
+.hero-title .accent{color:var(--lime)}
+.hero-title .accent2{color:var(--orange)}
+.hero-sub{font-size:1rem;color:var(--text-muted);max-width:480px;margin:0 auto 36px;line-height:1.7;opacity:0;animation:fadeUp 0.8s ease 0.5s forwards}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp 0.8s ease 0.65s forwards}
+.btn-primary{font-family:var(--font-display);font-size:0.9rem;font-weight:700;color:#06080f;background:var(--lime);border:none;padding:13px 28px;border-radius:var(--r);cursor:none;transition:transform 0.2s,box-shadow 0.2s;letter-spacing:-0.01em}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px var(--lime-glow)}
+.btn-ghost-hero{font-family:var(--font-display);font-size:0.9rem;font-weight:600;color:var(--text);background:none;border:1px solid var(--border-bright);padding:13px 28px;border-radius:var(--r);cursor:none;transition:all 0.2s}
+.btn-ghost-hero:hover{border-color:rgba(255,255,255,0.3)}
+
+/* ===== FLOATING TICKER ===== */
+.ticker{position:relative;z-index:2;overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px 0;background:var(--surface);margin-top:0}
+.ticker-track{display:flex;gap:48px;animation:ticker 20s linear infinite;width:max-content}
+.ticker-item{font-family:var(--font-mono);font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.15em;white-space:nowrap;display:flex;align-items:center;gap:10px}
+.ticker-item::after{content:'◆';color:var(--lime);font-size:0.4rem}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ===== STATS ===== */
+.stats{display:flex;justify-content:center;gap:0;margin-top:60px;border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;opacity:0;animation:fadeUp 0.8s ease 0.8s forwards;flex-wrap:wrap}
+.stat{flex:1;min-width:120px;padding:24px 20px;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-family:var(--font-display);font-size:2rem;font-weight:800;color:var(--lime);letter-spacing:-0.04em;line-height:1}
+.stat-l{font-family:var(--font-mono);font-size:0.58rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+
+/* ===== REVEAL ===== */
+.reveal{opacity:0;transform:translateY(50px);transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1),transform 0.8s cubic-bezier(0.16,1,0.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.d1{transition-delay:0.07s}.d2{transition-delay:0.14s}.d3{transition-delay:0.21s}.d4{transition-delay:0.28s}.d5{transition-delay:0.35s}.d6{transition-delay:0.42s}
+
+/* ===== SECTION ===== */
+.section{position:relative;z-index:2;padding:80px 40px;max-width:1100px;margin:0 auto}
+.section-tag{font-family:var(--font-mono);font-size:0.6rem;color:var(--lime);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:12px}
+.section-title{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-0.03em;line-height:1.05;margin-bottom:12px}
+
+/* ===== FEATURES GRID ===== */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:48px;background:var(--border);border-radius:var(--r-lg);overflow:hidden}
+.feat-card{background:var(--surface);padding:32px 28px;transition:background 0.2s}
+.feat-card:hover{background:var(--surface2)}
+.feat-icon{font-size:1.6rem;margin-bottom:16px}
+.feat-title{font-family:var(--font-display);font-size:1rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:6px}
+.feat-desc{font-size:0.82rem;color:var(--text-muted);line-height:1.6}
+
+/* ===== TOOL SECTION ===== */
+.tool-wrap{position:relative;z-index:2;padding:60px 40px;max-width:860px;margin:0 auto}
+.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:44px;position:relative;overflow:hidden}
+.tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--lime),transparent);opacity:0.6}
+.form-label{font-family:var(--font-mono);font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;display:block}
+.form-row{margin-bottom:20px}
+.form-input,.form-textarea,.form-select{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-family:var(--font-body);font-size:0.88rem;color:var(--text)!important;-webkit-text-fill-color:var(--text)!important;outline:none;transition:border-color 0.2s;resize:none}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)!important}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:rgba(200,241,53,0.3)}
+.form-select option{background:var(--surface2);color:var(--text)}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.char-count{font-family:var(--font-mono);font-size:0.55rem;color:var(--text-muted);text-align:right;margin-top:4px}
+.btn-generate{width:100%;font-family:var(--font-display);font-size:1rem;font-weight:800;color:#06080f;background:var(--lime);border:none;padding:16px;border-radius:var(--r);cursor:none;transition:transform 0.2s,box-shadow 0.2s,opacity 0.2s;letter-spacing:-0.02em;margin-top:8px}
+.btn-generate:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 40px var(--lime-glow)}
+.btn-generate:disabled{opacity:0.5}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(6,8,15,0.3);border-top-color:#06080f;border-radius:50%;animation:spin 0.6s linear infinite;margin-left:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-msg{font-size:0.8rem;color:var(--red);margin-top:10px;padding:10px 14px;background:rgba(255,69,69,0.06);border:1px solid rgba(255,69,69,0.15);border-radius:var(--r);display:none}
+.error-msg.show{display:block}
+
+/* ===== RESULTS ===== */
+.results{position:relative;z-index:2;max-width:860px;margin:0 auto;padding:0 40px 80px;display:none}
+.results.visible{display:block}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px;margin-bottom:16px;position:relative;overflow:hidden}
+.result-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px}
+.result-card.card-lime::before{background:var(--lime)}
+.result-card.card-orange::before{background:var(--orange)}
+.result-card.card-red::before{background:var(--red)}
+.result-label{font-family:var(--font-mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:8px}
+.result-label.lime{color:var(--lime)}
+.result-label.orange{color:var(--orange)}
+.result-label.red{color:var(--red)}
+.result-value{font-family:var(--font-display);font-size:2rem;font-weight:800;letter-spacing:-0.04em;line-height:1;margin-bottom:8px}
+.result-sub{font-size:0.82rem;color:var(--text-muted);line-height:1.6}
+.result-content{font-size:0.85rem;line-height:1.8;color:var(--text);white-space:pre-wrap}
+.result-actions{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.btn-ghost{font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:6px 14px;border-radius:var(--r);cursor:none;transition:all 0.2s}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-bright)}
+.disclaimer{font-family:var(--font-mono);font-size:0.62rem;color:var(--text-muted);padding:16px;background:rgba(255,69,69,0.04);border:1px solid rgba(255,69,69,0.1);border-radius:var(--r);margin-top:16px;line-height:1.6}
+.disclaimer strong{color:var(--red)}
+
+/* ===== FOOTER ===== */
+footer{position:relative;z-index:2;text-align:center;padding:40px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:0.62rem;color:var(--text-muted);line-height:2}
+footer span{color:var(--lime)}
+
+/* ===== MODALS ===== */
+.overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(6,8,15,0.8);backdrop-filter:blur(8px)}
+.overlay.hidden{display:none}
+.modal{background:var(--surface);border:1px solid var(--border-bright);border-radius:var(--r-lg);padding:44px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;position:relative;animation:modalIn 0.4s cubic-bezier(0.16,1,0.3,1)}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--lime),transparent);border-radius:var(--r-lg) var(--r-lg) 0 0}
+@keyframes modalIn{from{opacity:0;transform:scale(0.94) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:none;transition:color 0.2s}
+.modal-close:hover{color:var(--text)}
+.modal-title{font-family:var(--font-display);font-size:1.4rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px}
+.modal-sub{font-size:0.84rem;color:var(--text-muted);margin-bottom:24px}
+.modal-row{margin-bottom:14px}
+.modal-btn{width:100%;font-family:var(--font-display);font-size:0.9rem;font-weight:800;color:#06080f;background:var(--lime);border:none;padding:13px;border-radius:var(--r);cursor:none;transition:transform 0.2s;margin-top:8px;display:block;text-align:center;text-decoration:none;line-height:normal}
+.modal-btn:hover{transform:translateY(-2px)}
+.modal-switch{font-size:0.8rem;color:var(--text-muted);text-align:center;margin-top:16px}
+.modal-switch button{background:none;border:none;color:var(--lime);cursor:none;font-family:var(--font-body);font-size:0.8rem;text-decoration:underline}
+.auth-show-pw{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.8rem;color:var(--text-muted)}
+.auth-show-pw input{width:auto;cursor:none}
+.auth-show-pw label{cursor:none;user-select:none}
+.auth-error{font-size:0.8rem;color:var(--red);padding:8px 12px;background:rgba(255,69,69,0.06);border:1px solid rgba(255,69,69,0.15);border-radius:var(--r);margin-bottom:14px;display:none}
+.auth-error.show{display:block}
+.paywall-modal{max-width:460px}
+.paywall-price{font-family:var(--font-display);font-size:2.6rem;font-weight:800;color:var(--lime);margin:16px 0 4px;letter-spacing:-0.04em}
+.paywall-price-sub{font-size:0.8rem;color:var(--text-muted);margin-bottom:20px}
+.paywall-features{list-style:none;margin-bottom:20px}
+.paywall-features li{font-size:0.82rem;color:var(--text-muted);padding:5px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.paywall-features li:last-child{border-bottom:none}
+.paywall-features li::before{content:'✓';color:var(--lime);font-weight:700;flex-shrink:0}
+.paywall-or{text-align:center;font-family:var(--font-mono);font-size:0.62rem;color:var(--text-muted);margin:14px 0}
+.paywall-code-row{display:flex;gap:8px}
+.paywall-code-input{flex:1;font-family:var(--font-mono);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em}
+.paywall-error{font-size:0.75rem;color:var(--red);margin-top:6px;display:none}
+.paywall-error.show{display:block}
+
+/* ===== TOAST ===== */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:9500;display:flex;flex-direction:column;gap:6px}
+.toast{font-family:var(--font-mono);font-size:0.7rem;padding:10px 18px;border-radius:var(--r);animation:toastIn 0.35s cubic-bezier(0.16,1,0.3,1)}
+.toast-ok{background:rgba(200,241,53,0.1);color:var(--lime);border:1px solid rgba(200,241,53,0.2)}
+.toast-err{background:rgba(255,69,69,0.1);color:var(--red);border:1px solid rgba(255,69,69,0.2)}
+@keyframes toastIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+
+/* ===== PROGRESS BAR ===== */
+#progressBar{position:fixed;top:0;left:0;height:2px;background:var(--lime);z-index:9999;width:0;transition:width 0.1s linear;pointer-events:none}
+
+/* ===== BACK TO TOP ===== */
+#backToTop{position:fixed;bottom:24px;right:24px;z-index:8000;width:38px;height:38px;border-radius:50%;background:var(--surface2);border:1px solid var(--border-bright);color:var(--text-muted);font-size:0.9rem;cursor:none;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(8px);transition:all 0.3s;pointer-events:none}
+#backToTop.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+#backToTop:hover{color:var(--lime);border-color:rgba(200,241,53,0.3)}
+
+/* ===== SUPPORT ===== */
+#supportBtn{position:fixed;bottom:24px;left:24px;z-index:8000;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--lime),#a8d420);border:none;cursor:none;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 6px 24px var(--lime-glow);transition:transform 0.2s,box-shadow 0.2s}
+#supportBtn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 10px 32px var(--lime-glow)}
+#supportBtn .dot{position:absolute;top:2px;right:2px;width:9px;height:9px;background:#06080f;border-radius:50%;border:2px solid var(--lime);animation:pdot 2s infinite}
+@keyframes pdot{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+#supportPanel{position:fixed;bottom:82px;left:24px;z-index:8000;width:300px;background:var(--surface);border:1px solid var(--border-bright);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6);display:none;animation:panelIn 0.3s cubic-bezier(0.16,1,0.3,1)}
+#supportPanel.open{display:block}
+@keyframes panelIn{from{opacity:0;transform:translateY(12px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.sp-header{padding:16px 18px;background:rgba(200,241,53,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sp-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--lime),#a8d420);display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
+.sp-name{font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--text)}
+.sp-status{font-family:var(--font-mono);font-size:0.55rem;color:var(--lime);display:flex;align-items:center;gap:4px}
+.sp-status::before{content:'';width:4px;height:4px;background:var(--lime);border-radius:50%}
+.sp-close{margin-left:auto;background:none;border:none;color:var(--text-muted);font-size:0.9rem;cursor:none}
+.sp-body{padding:14px 16px;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.sp-bubble{padding:9px 13px;border-radius:10px;font-size:0.78rem;line-height:1.5;max-width:86%}
+.sp-bubble.bot{background:var(--surface2);color:var(--text);border-radius:10px 10px 10px 2px}
+.sp-bubble.user{background:rgba(200,241,53,0.1);color:var(--lime);border:1px solid rgba(200,241,53,0.15);align-self:flex-end;border-radius:10px 10px 2px 10px}
+.sp-qr{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+.sp-qr-btn{padding:4px 9px;border:1px solid var(--border);border-radius:100px;font-size:0.65rem;color:var(--text-muted);cursor:none;transition:all 0.2s;background:none;font-family:var(--font-body)}
+.sp-qr-btn:hover{border-color:rgba(200,241,53,0.3);color:var(--lime)}
+.sp-input-row{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:6px;align-items:center}
+.sp-input{flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:100px;padding:7px 12px;font-family:var(--font-body);font-size:0.78rem;color:var(--text);outline:none}
+.sp-input::placeholder{color:var(--text-muted)}
+.sp-send{width:28px;height:28px;border-radius:50%;background:var(--lime);border:none;cursor:none;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;transition:transform 0.2s;color:#06080f}
+.sp-send:hover{transform:scale(1.1)}
+.typing-bubble{display:flex;align-items:center;gap:3px;padding:10px 13px!important}
+.typing-bubble span{width:5px;height:5px;border-radius:50%;background:var(--text-muted);display:inline-block;animation:tdot 1.2s infinite}
+.typing-bubble span:nth-child(2){animation-delay:0.2s}
+.typing-bubble span:nth-child(3){animation-delay:0.4s}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+  nav{padding:14px 18px}
+  .hero{padding:100px 20px 80px}
+  .section{padding:60px 20px}
+  .tool-wrap{padding:40px 20px}
+  .results{padding:0 20px 60px}
+  .form-2col,.form-3col{grid-template-columns:1fr}
+  .feat-grid{grid-template-columns:1fr}
+  .tool-card{padding:24px}
+  .modal{padding:28px 20px}
+  .stats{flex-wrap:wrap}
+  .stat{min-width:50%;border-bottom:1px solid var(--border)}
+  body{cursor:auto}
+  #cur,#cur-ring{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- CANVAS BG -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- CINEMATIC INTRO -->
+<div id="intro">
+  <div class="intro-logo-wrap">
+    <div class="intro-tag">Tax Clarity for Freelancers</div>
+    <div class="intro-title">Hustle<span>Tax</span> AI</div>
+    <div class="intro-bar-wrap">
+      <div class="intro-bar-track">
+        <div class="intro-bar-fill" id="introFill"></div>
+      </div>
+      <div class="intro-bar-pct" id="introPct">0%</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div id="progressBar"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Hustle<span>Tax</span> AI</div>
+  <div class="nav-right" id="navRight">
+    <button class="btn-nav" onclick="openAuth('login')">Sign In</button>
+    <button class="btn-primary" style="padding:6px 16px;font-size:0.78rem;" onclick="openAuth('signup')">Get Started</button>
+  </div>
+</nav>
+
+<!-- AUTH + PAYWALL OVERLAYS (outside siteWrap so position:fixed is viewport-relative) -->
+<div class="overlay hidden" id="authOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()">✕</button>
+    <div class="modal-title" id="authTitle">Welcome back</div>
+    <div class="modal-sub" id="authSub">Sign in to continue</div>
+    <div class="auth-error" id="authErr"></div>
+    <div class="modal-row"><label class="form-label">Email</label><input type="email" class="form-input" id="authEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')handleAuth()"/></div>
+    <div class="modal-row"><label class="form-label">Password</label><input type="password" class="form-input" id="authPw" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleAuth()"/><div class="auth-show-pw"><input type="checkbox" id="authShowPw" onchange="document.getElementById('authPw').type=this.checked?'text':'password'"/><label for="authShowPw">Show password</label></div></div>
+    <button class="modal-btn" id="authBtn" onclick="handleAuth()">Sign In</button>
+    <div class="modal-switch"><span id="authSwText">No account?</span> <button onclick="toggleAuthMode()"><span id="authSwLink">Sign Up</span></button></div>
+  </div>
+</div>
+<div class="overlay hidden" id="paywallOverlay">
+  <div class="modal paywall-modal">
+    <button class="modal-close" onclick="document.getElementById('paywallOverlay').classList.add('hidden')">✕</button>
+    <div class="modal-title">You've used all free estimates</div>
+    <div class="modal-sub">Unlock unlimited access — one time, forever</div>
+    <div class="paywall-price">$4.99</div>
+    <div class="paywall-price-sub">One-time payment • Lifetime access • No subscription</div>
+    <ul class="paywall-features">
+      <li>Unlimited quarterly estimates</li>
+      <li>All 50+ countries supported</li>
+      <li>Deduction finder every time</li>
+      <li>Downloadable tax reports</li>
+      <li>Quarterly deadline reminders</li>
+    </ul>
+    <a href="https://payhip.com/b/YOUR_PRODUCT_ID" target="_blank" class="modal-btn">Pay $4.99 — Unlock Forever</a>
+    <div class="paywall-or">— OR ENTER ACCESS CODE —</div>
+    <div class="paywall-code-row">
+      <input type="text" class="form-input paywall-code-input" id="codeInput" placeholder="Enter code..." onkeydown="if(event.key==='Enter')verifyCode()"/>
+      <button class="btn-primary" style="padding:11px 18px;font-size:0.82rem;" onclick="verifyCode()">Apply</button>
+    </div>
+    <div class="paywall-error" id="paywallErr">Invalid code.</div>
+  </div>
+</div>
+
+<!-- SITE WRAPPER — starts visible, JS blurs during intro -->
+<div id="siteWrap">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-tag">AI-Powered Tax Estimator</div>
+    <h1 class="hero-title">Stop guessing.<br><span class="accent">Know exactly</span><br>what you <span class="accent2">owe.</span></h1>
+    <p class="hero-sub">Freelancers & side-hustlers: get your quarterly tax estimate in 60 seconds. Works in 50+ countries. No accountant needed.</p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="scrollToTool()">Calculate My Tax →</button>
+      <button class="btn-ghost-hero" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">How It Works</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n" data-count="50" data-suffix="+">0</div><div class="stat-l">Countries</div></div>
+      <div class="stat"><div class="stat-n" data-count="60" data-suffix="s">0</div><div class="stat-l">Estimate Time</div></div>
+      <div class="stat"><div class="stat-n" data-count="3">0</div><div class="stat-l">Free Uses</div></div>
+      <div class="stat"><div class="stat-n" data-prefix="$" data-count="4">0</div><div class="stat-l">Lifetime Access</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <div class="ticker-item">Upwork Freelancers</div>
+    <div class="ticker-item">Fiverr Sellers</div>
+    <div class="ticker-item">DoorDash Drivers</div>
+    <div class="ticker-item">Side Hustlers</div>
+    <div class="ticker-item">Content Creators</div>
+    <div class="ticker-item">Consultants</div>
+    <div class="ticker-item">50+ Countries</div>
+    <div class="ticker-item">No Accountant Needed</div>
+    <div class="ticker-item">Quarterly Deadlines</div>
+    <div class="ticker-item">Deduction Finder</div>
+    <div class="ticker-item">Upwork Freelancers</div>
+    <div class="ticker-item">Fiverr Sellers</div>
+    <div class="ticker-item">DoorDash Drivers</div>
+    <div class="ticker-item">Side Hustlers</div>
+    <div class="ticker-item">Content Creators</div>
+    <div class="ticker-item">Consultants</div>
+    <div class="ticker-item">50+ Countries</div>
+    <div class="ticker-item">No Accountant Needed</div>
+    <div class="ticker-item">Quarterly Deadlines</div>
+    <div class="ticker-item">Deduction Finder</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="reveal"><div class="section-tag">Why HustleTax</div><div class="section-title">Built for people who hustle,<br>not accountants.</div></div>
+  <div class="feat-grid">
+    <div class="feat-card reveal d1"><div class="feat-icon">🌍</div><div class="feat-title">50+ Countries</div><div class="feat-desc">US, UK, India, EU, Australia, Canada and more. Country-specific tax rules applied automatically.</div></div>
+    <div class="feat-card reveal d2"><div class="feat-icon">⚡</div><div class="feat-title">60-Second Estimate</div><div class="feat-desc">Paste your income, expenses, and country. Get a full breakdown in under a minute.</div></div>
+    <div class="feat-card reveal d3"><div class="feat-icon">📋</div><div class="feat-title">Deduction Finder</div><div class="feat-desc">AI spots missed deductions in your expenses — laptop, internet, software, home office.</div></div>
+    <div class="feat-card reveal d4"><div class="feat-icon">📅</div><div class="feat-title">Payment Deadlines</div><div class="feat-desc">Exact quarterly deadlines for your country so you never get hit with late penalties again.</div></div>
+    <div class="feat-card reveal d5"><div class="feat-icon">💰</div><div class="feat-title">Set-Aside Amount</div><div class="feat-desc">Tells you exactly how much to move to savings right now. No mental math needed.</div></div>
+    <div class="feat-card reveal d6"><div class="feat-icon">📄</div><div class="feat-title">Saveable Report</div><div class="feat-desc">Copy or download your full tax summary as a text file. Reference it all quarter long.</div></div>
+  </div>
+</section>
+
+<!-- TOOL -->
+<section class="tool-wrap" id="tool">
+  <div class="tool-card reveal">
+    <div class="section-tag" style="margin-bottom:8px;">Tax Calculator</div>
+    <div class="section-title" style="font-size:1.6rem;margin-bottom:28px;">Tell me about your hustle</div>
+
+    <div class="form-2col">
+      <!-- Country -->
+      <div class="form-row">
+        <label class="form-label">Country of Tax Residence</label>
+        <select class="form-select" id="countryInput">
+          <option value="United States">🇺🇸 United States</option>
+          <option value="United Kingdom">🇬🇧 United Kingdom</option>
+          <option value="India" selected>🇮🇳 India</option>
+          <option value="Canada">🇨🇦 Canada</option>
+          <option value="Australia">🇦🇺 Australia</option>
+          <option value="Germany">🇩🇪 Germany</option>
+          <option value="France">🇫🇷 France</option>
+          <option value="Netherlands">🇳🇱 Netherlands</option>
+          <option value="Singapore">🇸🇬 Singapore</option>
+          <option value="UAE">🇦🇪 UAE</option>
+          <option value="Pakistan">🇵🇰 Pakistan</option>
+          <option value="Bangladesh">🇧🇩 Bangladesh</option>
+          <option value="Philippines">🇵🇭 Philippines</option>
+          <option value="Nigeria">🇳🇬 Nigeria</option>
+          <option value="South Africa">🇿🇦 South Africa</option>
+          <option value="Brazil">🇧🇷 Brazil</option>
+          <option value="Mexico">🇲🇽 Mexico</option>
+          <option value="Indonesia">🇮🇩 Indonesia</option>
+          <option value="Malaysia">🇲🇾 Malaysia</option>
+          <option value="Kenya">🇰🇪 Kenya</option>
+          <option value="Other">🌍 Other (describe below)</option>
+        </select>
+      </div>
+      <!-- Income type -->
+      <div class="form-row">
+        <label class="form-label">Primary Income Source</label>
+        <select class="form-select" id="incomeType">
+          <option value="Freelance / Upwork / Fiverr">Freelance (Upwork / Fiverr)</option>
+          <option value="Content creation / YouTube / TikTok">Content Creator</option>
+          <option value="Delivery / DoorDash / Uber Eats">Delivery Driver</option>
+          <option value="Consulting / Advisory">Consulting</option>
+          <option value="E-commerce / Dropshipping">E-commerce</option>
+          <option value="Digital products / SaaS">Digital Products / SaaS</option>
+          <option value="Multiple side hustles">Multiple Side Hustles</option>
+          <option value="Other self-employment">Other Self-Employment</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-3col">
+      <!-- Gig income -->
+      <div class="form-row">
+        <label class="form-label">Gig Income This Quarter (USD or local)</label>
+        <input type="text" class="form-input" id="gigIncome" placeholder="e.g. $2,400 or ₹45,000"/>
+      </div>
+      <!-- Other income -->
+      <div class="form-row">
+        <label class="form-label">Other Income (job, salary) — optional</label>
+        <input type="text" class="form-input" id="otherIncome" placeholder="e.g. $3,000 salary"/>
+      </div>
+      <!-- Currency -->
+      <div class="form-row">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="currency">
+          <option value="USD ($)">USD ($)</option>
+          <option value="INR (₹)" selected>INR (₹)</option>
+          <option value="GBP (£)">GBP (£)</option>
+          <option value="EUR (€)">EUR (€)</option>
+          <option value="CAD ($)">CAD ($)</option>
+          <option value="AUD ($)">AUD ($)</option>
+          <option value="SGD ($)">SGD ($)</option>
+          <option value="AED (د.إ)">AED (د.إ)</option>
+          <option value="NGN (₦)">NGN (₦)</option>
+          <option value="BRL (R$)">BRL (R$)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Expenses -->
+    <div class="form-row">
+      <label class="form-label">Business Expenses This Quarter (one per line)</label>
+      <textarea class="form-textarea" id="expenses" rows="4" placeholder="Laptop $800&#10;Internet $60/month&#10;Software subscriptions $45&#10;Home office (describe sq ft if known)&#10;Phone bill $30" oninput="updateCC('expCC',this.value,1000)"></textarea>
+      <div class="char-count" id="expCC">0 / 1000</div>
+    </div>
+
+    <!-- Extra context -->
+    <div class="form-row">
+      <label class="form-label">Anything else? (platforms, situation, questions) — optional</label>
+      <textarea class="form-textarea" id="extraCtx" rows="2" placeholder="e.g. I also earn from Amazon affiliates and have a home office. Not sure if I need to pay GST." oninput="updateCC('ctxCC',this.value,500)"></textarea>
+      <div class="char-count" id="ctxCC">0 / 500</div>
+    </div>
+
+    <div class="error-msg" id="mainErr"></div>
+    <button class="btn-generate" id="genBtn" onclick="handleGenerate()">Calculate My Tax Estimate →</button>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<div class="results" id="resultsSection">
+  <!-- Cards injected by JS -->
+</div>
+
+<footer><span>HustleTax AI</span> — Tax clarity for the global gig economy.<br>© 2025 HustleTax. Not tax advice. Always consult a local professional.</footer>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- SUPPORT -->
+<button id="supportBtn" onclick="toggleSupport()">
+  💬<span class="dot"></span>
+</button>
+<div id="supportPanel">
+  <div class="sp-header">
+    <div class="sp-avatar">🤖</div>
+    <div>
+      <div class="sp-name">TaxBot</div>
+      <div class="sp-status">Online now</div>
+    </div>
+    <button class="sp-close" onclick="toggleSupport()">✕</button>
+  </div>
+  <div class="sp-body" id="spBody">
+    <div class="sp-bubble bot">Hey! 👋 I'm TaxBot. Ask me anything about HustleTax.</div>
+    <div class="sp-qr">
+      <button class="sp-qr-btn" onclick="spReply(this,'How accurate is this estimate?')">How accurate?</button>
+      <button class="sp-qr-btn" onclick="spReply(this,'What countries are supported?')">Countries?</button>
+      <button class="sp-qr-btn" onclick="spReply(this,'How do I unlock unlimited access?')">Pricing?</button>
+      <button class="sp-qr-btn" onclick="spReply(this,'I found a bug')">Bug report</button>
+    </div>
+  </div>
+  <div class="sp-input-row">
+    <input type="text" class="sp-input" id="spInput" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')spSend()"/>
+    <button class="sp-send" onclick="spSend()">➤</button>
+  </div>
+</div>
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+</div><!-- end siteWrap -->
+
+<script>
+// ===== CONSTANTS =====
+const VALID_CODE = 'HUSTLETAX99';
+const MAX_TRIES = 3;
+
+// ===== CURSOR =====
+const cur = document.getElementById('cur');
+const curRing = document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function ringLoop(){rx+=(mx-rx)*0.14;ry+=(my-ry)*0.14;curRing.style.left=rx+'px';curRing.style.top=ry+'px';requestAnimationFrame(ringLoop);})();
+
+// ===== USER HELPERS =====
+function getUsers(){try{return JSON.parse(localStorage.getItem('ht_users')||'{}')}catch{return{}}}
+function saveUsers(u){localStorage.setItem('ht_users',JSON.stringify(u))}
+function getCurrentUser(){return localStorage.getItem('ht_current')}
+function setCurrentUser(e){e?localStorage.setItem('ht_current',e):localStorage.removeItem('ht_current')}
+function getCurrentUserData(){const e=getCurrentUser();if(!e)return null;const u=getUsers();return u[e]?{email:e,...u[e]}:null}
+
+// ===== DAILY CAP (per .cursorrules) =====
+function checkDailyLimit(userData){
+  const today=new Date().toDateString();
+  if(userData.dailyDate!==today){
+    userData.dailyCount=0;
+    userData.dailyDate=today;
+    const users=getUsers();
+    if(users[userData.email]){users[userData.email].dailyCount=0;users[userData.email].dailyDate=today;saveUsers(users)}
+  }
+  return (userData.dailyCount||0)>=10;
+}
+function incrementDaily(email){
+  const users=getUsers();
+  const today=new Date().toDateString();
+  if(users[email].dailyDate!==today){users[email].dailyCount=0;users[email].dailyDate=today}
+  users[email].dailyCount=(users[email].dailyCount||0)+1;
+  saveUsers(users);
+}
+function updateNav(){
+  const u=getCurrentUserData();
+  const nr=document.getElementById('navRight');
+  if(u){
+    nr.innerHTML=`<span class="tries-badge ${u.unlimited?'unlimited':''}">${u.unlimited?'∞ Unlimited':`${u.tries} tries left`}</span><button class="btn-nav danger" onclick="handleSignOut()">Sign Out</button>`;
+  } else {
+    nr.innerHTML=`<button class="btn-nav" onclick="openAuth('login')">Sign In</button><button class="btn-primary" style="padding:6px 16px;font-size:0.78rem;" onclick="openAuth('signup')">Get Started</button>`;
+  }
+}
+
+// ===== AUTH =====
+let authMode='login';
+function openAuth(mode){
+  authMode=mode;
+  const isLogin=mode==='login';
+  document.getElementById('authTitle').textContent=isLogin?'Welcome back':'Create account';
+  document.getElementById('authSub').textContent=isLogin?'Sign in to continue':'Get 3 free tax estimates';
+  document.getElementById('authBtn').textContent=isLogin?'Sign In':'Create Account';
+  document.getElementById('authSwText').textContent=isLogin?'No account?':'Already have one?';
+  document.getElementById('authSwLink').textContent=isLogin?'Sign Up':'Sign In';
+  document.getElementById('authErr').classList.remove('show');
+  document.getElementById('authOverlay').classList.remove('hidden');
+}
+function closeAuth(){document.getElementById('authOverlay').classList.add('hidden')}
+function toggleAuthMode(){openAuth(authMode==='login'?'signup':'login')}
+function handleAuth(){
+  const email=document.getElementById('authEmail').value.trim();
+  const pw=document.getElementById('authPw').value.trim();
+  const errEl=document.getElementById('authErr');
+  errEl.classList.remove('show');
+  if(!email||!pw){errEl.textContent='All fields required';errEl.classList.add('show');return}
+  if(pw.length<4){errEl.textContent='Password min 4 chars';errEl.classList.add('show');return}
+  const users=getUsers();
+  if(authMode==='signup'){
+    if(users[email]){errEl.textContent='Account exists — sign in instead';errEl.classList.add('show');return}
+    users[email]={password:pw,tries:MAX_TRIES,unlimited:false,dailyCount:0,dailyDate:new Date().toDateString()};
+    saveUsers(users);setCurrentUser(email);closeAuth();updateNav();showToast('Account created! ✨','ok');
+  } else {
+    if(!users[email]){errEl.textContent='Account not found';errEl.classList.add('show');return}
+    if(users[email].password!==pw){errEl.textContent='Wrong password';errEl.classList.add('show');return}
+    setCurrentUser(email);closeAuth();updateNav();showToast('Welcome back!','ok');
+  }
+  document.getElementById('authEmail').value='';
+  document.getElementById('authPw').value='';
+}
+function handleSignOut(){setCurrentUser(null);updateNav();showToast('Signed out','ok')}
+
+// ===== PAYWALL =====
+function showPaywall(){
+  document.getElementById('paywallErr').classList.remove('show');
+  document.getElementById('codeInput').value='';
+  document.getElementById('paywallOverlay').classList.remove('hidden');
+}
+function verifyCode(){
+  const code=document.getElementById('codeInput').value.trim().toUpperCase();
+  const errEl=document.getElementById('paywallErr');
+  errEl.classList.remove('show');
+  if(code===VALID_CODE){
+    const email=getCurrentUser();
+    if(email){const u=getUsers();if(u[email]){u[email].unlimited=true;saveUsers(u)}}
+    document.getElementById('paywallOverlay').classList.add('hidden');
+    updateNav();showToast('Unlimited access unlocked! 🎉','ok');
+  } else {
+    errEl.classList.add('show');
+  }
+}
+
+// ===== CHAR COUNTER =====
+function updateCC(id,val,max){
+  const el=document.getElementById(id);
+  el.textContent=val.length+' / '+max;
+  el.style.color=val.length>max?'var(--red)':val.length>max*0.85?'var(--orange)':'var(--text-muted)';
+}
+
+// ===== SCROLL TO TOOL =====
+function scrollToTool(){
+  const u=getCurrentUserData();
+  if(u){document.getElementById('tool').scrollIntoView({behavior:'smooth'})}
+  else{openAuth('signup')}
+}
+
+// ===== GENERATE =====
+async function handleGenerate(){
+  const u=getCurrentUserData();
+  if(!u){openAuth('signup');return}
+  if(!u.unlimited&&u.tries<=0){showPaywall();return}
+
+  const errEl=document.getElementById('mainErr');
+  errEl.classList.remove('show');
+  if(checkDailyLimit(u)){errEl.textContent='Daily limit reached (10 estimates/day). Try again tomorrow.';errEl.classList.add('show');return}
+
+  const country=document.getElementById('countryInput').value;
+  const incomeType=document.getElementById('incomeType').value;
+  const gigIncome=document.getElementById('gigIncome').value.trim();
+  const otherIncome=document.getElementById('otherIncome').value.trim();
+  const currency=document.getElementById('currency').value;
+  const expenses=document.getElementById('expenses').value.trim();
+  const extra=document.getElementById('extraCtx').value.trim();
+
+  if(!gigIncome){errEl.textContent='Please enter your gig income';errEl.classList.add('show');return}
+
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;
+  btn.innerHTML='Calculating<span class="spinner"></span>';
+  document.getElementById('resultsSection').classList.remove('visible');
+
+  // System prompt — tailored for global tax estimation
+  const systemPrompt=`You are a global freelance tax estimation expert. Given a freelancer's income, country, and expenses, produce a clear, actionable quarterly tax estimate.
+
+You must respond in this EXACT JSON format with these keys:
+{
+  "tax_owed": "formatted amount with currency symbol",
+  "set_aside_now": "formatted amount with currency symbol",
+  "effective_rate": "percentage as string e.g. 28%",
+  "deadlines": "next 2 payment deadlines for their country, formatted as human-readable dates",
+  "deductions_found": "bullet list of valid deductions from their expenses, formatted with • symbols",
+  "missed_deductions": "bullet list of commonly missed deductions for their situation they didn't mention",
+  "breakdown": "3-4 sentence plain English explanation of how you calculated this",
+  "next_quarter_checklist": "5 action items for next quarter as a bullet list with • symbols",
+  "important_note": "one specific warning or tip for their exact country and situation"
+}
+
+Rules:
+- Be specific to their country's tax rules (self-employment tax, GST, VAT, national insurance, etc.)
+- Use their currency throughout
+- Be conservative (estimate slightly higher to avoid underpayment)
+- Always end with a disclaimer reminder
+- Return ONLY valid JSON, no markdown, no explanation outside the JSON`;
+
+  const userPrompt=`Country: ${country}
+Income type: ${incomeType}
+Gig/freelance income this quarter: ${gigIncome} ${currency}
+Other income (salary/job): ${otherIncome||'None'}
+Expenses this quarter:
+${expenses||'None listed'}
+Additional context: ${extra||'None'}`;
+
+  try{
+    // Call Groq via serverless /api/generate
+    const res=await fetch('/api/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({systemPrompt,userPrompt,max_tokens:1200})
+    });
+
+    if(res.status===503){
+      errEl.textContent='⚠️ AI at capacity. Please try again in a minute.';
+      errEl.classList.add('show');
+      btn.disabled=false;btn.innerHTML='Calculate My Tax Estimate →';
+      return;
+    }
+    if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d?.error||`Server error ${res.status}`)}
+
+    const data=await res.json();
+    const raw=data.choices?.[0]?.message?.content;
+    if(!raw)throw new Error('No response from AI');
+
+    // Parse JSON — strip any accidental markdown
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+
+    // Render results
+    renderResults(parsed);
+
+    // Deduct a try and increment daily count
+    if(!u.unlimited){
+      const users=getUsers();
+      if(users[u.email]){users[u.email].tries=Math.max(0,users[u.email].tries-1);saveUsers(users)}
+      updateNav();
+    }
+    incrementDaily(u.email);
+
+    document.getElementById('resultsSection').classList.add('visible');
+    setTimeout(()=>document.getElementById('resultsSection').scrollIntoView({behavior:'smooth',block:'start'}),300);
+    showToast('Estimate ready! ✨','ok');
+
+    // Show paywall after last free use
+    const freshU=getCurrentUserData();
+    if(freshU&&!freshU.unlimited&&freshU.tries<=0){
+      setTimeout(showPaywall,2500);
+    }
+
+  }catch(err){
+    errEl.textContent='Error: '+err.message;
+    errEl.classList.add('show');
+  }
+  btn.disabled=false;btn.innerHTML='Calculate My Tax Estimate →';
+}
+
+// ===== RENDER RESULTS =====
+function renderResults(d){
+  const rs=document.getElementById('resultsSection');
+
+  rs.innerHTML=`
+    <!-- Big 3 numbers -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+      <div class="result-card card-lime reveal">
+        <div class="result-label lime">Estimated Tax Owed</div>
+        <div class="result-value" style="color:var(--lime)">${d.tax_owed||'—'}</div>
+        <div class="result-sub">This quarter</div>
+      </div>
+      <div class="result-card card-orange reveal d1">
+        <div class="result-label orange">Set Aside Now</div>
+        <div class="result-value" style="color:var(--orange)">${d.set_aside_now||'—'}</div>
+        <div class="result-sub">Move to savings today</div>
+      </div>
+      <div class="result-card card-lime reveal d2">
+        <div class="result-label lime">Effective Rate</div>
+        <div class="result-value" style="color:var(--lime)">${d.effective_rate||'—'}</div>
+        <div class="result-sub">Of gig income</div>
+      </div>
+    </div>
+
+    <!-- Deadlines -->
+    <div class="result-card card-orange reveal d1" style="margin-bottom:12px;">
+      <div class="result-label orange">⏰ Payment Deadlines</div>
+      <div class="result-content" style="margin-top:8px;">${d.deadlines||'—'}</div>
+    </div>
+
+    <!-- How it's calculated -->
+    <div class="result-card reveal d2" style="margin-bottom:12px;">
+      <div class="result-label lime">📊 How This Was Calculated</div>
+      <div class="result-content" style="margin-top:8px;">${d.breakdown||'—'}</div>
+    </div>
+
+    <!-- Deductions found -->
+    <div class="result-card card-lime reveal d3" style="margin-bottom:12px;">
+      <div class="result-label lime">✅ Deductions Found in Your Expenses</div>
+      <div class="result-content" style="margin-top:8px;">${d.deductions_found||'None found'}</div>
+    </div>
+
+    <!-- Missed deductions -->
+    <div class="result-card card-orange reveal d4" style="margin-bottom:12px;">
+      <div class="result-label orange">💡 Deductions You Might Be Missing</div>
+      <div class="result-content" style="margin-top:8px;">${d.missed_deductions||'—'}</div>
+    </div>
+
+    <!-- Important note -->
+    <div class="result-card card-red reveal d5" style="margin-bottom:12px;">
+      <div class="result-label" style="color:var(--red)">⚠️ Important for Your Situation</div>
+      <div class="result-content" style="margin-top:8px;">${d.important_note||'—'}</div>
+    </div>
+
+    <!-- Next quarter checklist -->
+    <div class="result-card reveal d6" style="margin-bottom:12px;">
+      <div class="result-label lime">📋 Next Quarter Checklist</div>
+      <div class="result-content" style="margin-top:8px;">${d.next_quarter_checklist||'—'}</div>
+      <div class="result-actions">
+        <button class="btn-ghost" onclick="copyReport()">📋 Copy Report</button>
+        <button class="btn-ghost" onclick="downloadReport()">↓ Download</button>
+      </div>
+    </div>
+
+    <!-- Legal disclaimer -->
+    <div class="disclaimer reveal">
+      <strong>⚠️ NOT TAX ADVICE.</strong> This is an AI-generated estimate for planning purposes only. Tax laws vary and change frequently. Always consult a qualified local tax professional before making financial decisions. This tool does not file taxes or provide legal advice.
+    </div>
+  `;
+
+  // Store for copy/download
+  window._lastReport=`HUSTLETAX AI — QUARTERLY TAX ESTIMATE
+======================================
+Estimated Tax Owed: ${d.tax_owed}
+Set Aside Now: ${d.set_aside_now}
+Effective Rate: ${d.effective_rate}
+
+PAYMENT DEADLINES
+${d.deadlines}
+
+HOW THIS WAS CALCULATED
+${d.breakdown}
+
+DEDUCTIONS FOUND
+${d.deductions_found}
+
+MISSED DEDUCTIONS
+${d.missed_deductions}
+
+IMPORTANT NOTE
+${d.important_note}
+
+NEXT QUARTER CHECKLIST
+${d.next_quarter_checklist}
+
+---
+NOT TAX ADVICE. Consult a local tax professional.
+Generated by HustleTax AI — hustletax.vercel.app`;
+
+  // Attach reveal
+  attachReveal();
+}
+
+function copyReport(){
+  if(!window._lastReport)return;
+  navigator.clipboard.writeText(window._lastReport).then(()=>showToast('Copied!','ok')).catch(()=>showToast('Copy failed','err'));
+}
+function downloadReport(){
+  if(!window._lastReport)return;
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([window._lastReport],{type:'text/plain'})),download:'hustletax-estimate.txt'});
+  a.click();showToast('Downloaded!','ok');
+}
+
+// ===== TOAST =====
+function showToast(msg,type='ok'){
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  t.textContent=msg;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+updateNav();
+</script>
+
+<script>
+// ===== CANVAS BACKGROUND =====
+(function(){
+  const canvas=document.getElementById('bgCanvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,mouse={x:-999,y:-999};
+  const COLS=['rgba(200,241,53,','rgba(255,124,58,','rgba(255,255,255,'];
+  const N=70,CONN=130,MDIST=140;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  resize();
+  window.addEventListener('resize',resize);
+  window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+  window.addEventListener('mouseleave',()=>{mouse.x=-999;mouse.y=-999});
+  const pts=Array.from({length:N},()=>({
+    x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
+    vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,
+    size:Math.random()*1.6+0.3,color:COLS[Math.floor(Math.random()*COLS.length)],
+    bvx:0,bvy:0,pulse:Math.random()*Math.PI*2
+  }));
+  pts.forEach(p=>{p.bvx=p.vx;p.bvy=p.vy});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.pulse+=0.01;
+      const dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<MDIST){const f=(MDIST-d)/MDIST;p.vx+=(dx/d)*f*0.5;p.vy+=(dy/d)*f*0.5}
+      p.vx+=(p.bvx-p.vx)*0.03;p.vy+=(p.bvy-p.vy)*0.03;
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      const ps=p.size+Math.sin(p.pulse)*0.3;
+      ctx.beginPath();ctx.arc(p.x,p.y,ps,0,Math.PI*2);
+      ctx.fillStyle=p.color+'0.6)';ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<CONN){const a=(1-d/CONN)*0.15;ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(200,241,53,${a})`;ctx.lineWidth=0.5;ctx.stroke()}
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===== SCROLL REVEAL =====
+const ro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');ro.unobserve(e.target)}});
+},{threshold:0.08,rootMargin:'0px 0px -50px 0px'});
+function attachReveal(){document.querySelectorAll('.reveal:not(.visible)').forEach(el=>ro.observe(el))}
+attachReveal();
+
+// ===== STAT COUNTERS =====
+const co=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){
+    document.querySelectorAll('[data-count]').forEach(el=>{
+      const tgt=parseInt(el.dataset.count),pre=el.dataset.prefix||'',suf=el.dataset.suffix||'';
+      const start=performance.now();
+      (function step(now){const p=Math.min((now-start)/1400,1),ease=1-Math.pow(1-p,3);el.textContent=pre+Math.round(ease*tgt)+suf;if(p<1)requestAnimationFrame(step)})(start);
+    });co.disconnect();
+  }});
+},{threshold:0.5});
+const sb=document.querySelector('.stats');
+if(sb)co.observe(sb);
+
+// ===== PROGRESS BAR + BACK TO TOP =====
+window.addEventListener('scroll',()=>{
+  const doc=document.documentElement;
+  const maxScroll=doc.scrollHeight-doc.clientHeight;
+  document.getElementById('progressBar').style.width=(maxScroll<=0?0:doc.scrollTop/maxScroll*100)+'%';
+  const btn=document.getElementById('backToTop');
+  doc.scrollTop>400?btn.classList.add('visible'):btn.classList.remove('visible');
+});
+
+// ===== SUPPORT CHAT =====
+let spOpen=false;
+let spHistory=[];
+const SP_SYSTEM=`You are TaxBot, the support agent for HustleTax AI — an AI-powered quarterly tax estimator for global freelancers and side-hustlers.
+
+Product facts:
+- Estimates quarterly taxes for 50+ countries
+- Works for: Upwork/Fiverr freelancers, content creators, delivery drivers, consultants, e-commerce sellers
+- 3 free estimates, then $4.99 one-time for unlimited access
+- Access code given after Payhip purchase
+- NOT a tax filing tool — estimates only, always recommends consulting a local professional
+- AI model: Groq llama-3.3-70b-versatile
+
+Your personality: helpful, direct, honest. Under 3 sentences for simple questions. Use emojis sparingly. Never make up tax rules — say "verify with a local accountant" when unsure.`;
+
+function toggleSupport(){spOpen=!spOpen;document.getElementById('supportPanel').classList.toggle('open',spOpen)}
+
+async function spReply(btn,msg){
+  const qrEl=btn.closest('.sp-qr');if(qrEl)qrEl.remove();
+  addSpMsg(msg,'user');await callSpAI(msg);
+}
+async function spSend(){
+  const inp=document.getElementById('spInput');const msg=inp.value.trim();if(!msg)return;
+  inp.value='';addSpMsg(msg,'user');await callSpAI(msg);
+}
+async function callSpAI(msg){
+  spHistory.push({role:'user',content:msg});
+  const tid='t'+Date.now();addTyping(tid);
+  try{
+    const res=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'system',content:SP_SYSTEM},...spHistory]})});
+    if(!res.ok)throw new Error('err');
+    const data=await res.json();
+    const reply=data.choices?.[0]?.message?.content||"Email support@hustletax.ai 🙏";
+    removeTyping(tid);addSpMsg(reply,'bot');
+    spHistory.push({role:'assistant',content:reply});
+    if(spHistory.length>20)spHistory=spHistory.slice(-20);
+  }catch{removeTyping(tid);addSpMsg("Can't reach support right now. Email support@hustletax.ai 🙏",'bot')}
+}
+function addTyping(id){
+  const b=document.getElementById('spBody');
+  const el=document.createElement('div');el.id=id;el.className='sp-bubble bot typing-bubble';
+  el.innerHTML='<span></span><span></span><span></span>';b.appendChild(el);b.scrollTop=b.scrollHeight;
+}
+function removeTyping(id){const el=document.getElementById(id);if(el)el.remove()}
+function addSpMsg(text,type){
+  const b=document.getElementById('spBody');
+  const el=document.createElement('div');el.className='sp-bubble '+type;el.textContent=text;
+  el.style.opacity='0';el.style.transform='translateY(6px)';b.appendChild(el);b.scrollTop=b.scrollHeight;
+  requestAnimationFrame(()=>{el.style.transition='opacity 0.25s,transform 0.25s';el.style.opacity='1';el.style.transform='translateY(0)'});
+}
+
+// ===== CINEMATIC INTRO =====
+(function(){
+  const intro=document.getElementById('intro');
+  const site=document.getElementById('siteWrap');
+  const fill=document.getElementById('introFill');
+  const pct=document.getElementById('introPct');
+
+  // Blur site during intro — JS-controlled so if script crashes site stays visible
+  site.style.filter='blur(14px)';
+  site.style.transform='scale(1.03)';
+  site.style.transition='filter 1s ease 0.2s, transform 1s ease 0.2s';
+
+  let exited=false;
+  function exitIntro(){
+    if(exited)return;exited=true;
+    intro.classList.add('hide');
+    site.style.filter='blur(0)';
+    site.style.transform='scale(1)';
+    setTimeout(()=>{intro.style.display='none'},1100);
+  }
+
+  // Nuclear fallback — always exits at 5s no matter what
+  setTimeout(exitIntro,5000);
+
+  // Fill bar + counter start at 600ms so 0→100% is visible before exit at 3.7s
+  setTimeout(()=>{
+    fill.style.width='100%';
+    const start=performance.now();const dur=1200;
+    function tick(now){
+      const p=Math.min((now-start)/dur,1);
+      const e=1-Math.pow(1-p,3);
+      pct.textContent=Math.floor(e*100)+'%';
+      if(p<1)requestAnimationFrame(tick);else pct.textContent='100%';
+    }
+    requestAnimationFrame(tick);
+  },600);
+
+  // Exit at 3.7s per .cursorrules
+  setTimeout(exitIntro,3700);
+})();
+</script>
+</body>
+</html>
