@@ -27,14 +27,15 @@ export default async function handler(req, res) {
           'Authorization': `Bearer ${key}`,
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.7,
-          max_tokens: max_tokens || 1200,
-        }),
+  model: 'llama-3.3-70b-versatile',
+  messages: [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ],
+  temperature: 0.7,
+  max_tokens: max_tokens || 1200,
+  response_format: { type: 'json_object' },
+}),
       });
 
       if (r.status === 429) continue; // rate limited — try next key
