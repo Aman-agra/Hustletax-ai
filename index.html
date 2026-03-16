@@ -885,6 +885,7 @@ updateNav();
 
 // ===== FORGOT PASSWORD =====
 let forgotEmail = '';
+let forgotToken = ''; // token returned by send-otp, passed to verify-otp
 
 function openForgot() {
   closeAuth();
@@ -911,6 +912,7 @@ async function sendOTP() {
     const data = await r.json();
     if(!r.ok) throw new Error(data.error||'Failed to send');
     forgotEmail = email;
+    forgotToken = data.token; // store token from server
     document.getElementById('forgotStep2Sub').textContent=`We sent a 6-digit code to ${email}`;
     document.getElementById('forgotStep1').style.display='none';
     document.getElementById('forgotStep2').style.display='block';
@@ -929,7 +931,7 @@ async function verifyOTP() {
   const btn = document.getElementById('verifyOTPBtn');
   btn.textContent='Verifying...'; btn.disabled=true;
   try {
-    const r = await fetch('/api/verify-otp',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:forgotEmail,otp}) });
+    const r = await fetch('/api/verify-otp',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:forgotEmail, otp, token:forgotToken}) });
     const data = await r.json();
     if(!r.ok) throw new Error(data.error||'Invalid code');
     document.getElementById('forgotStep2').style.display='none';
