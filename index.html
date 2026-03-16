@@ -40,20 +40,18 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(200,241,53,0.04) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(255,124,58,0.04) 0%,transparent 60%);pointer-events:none;z-index:0}
 body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.5}
 
-/* ===== SITE WRAP ===== */
-#siteWrap{filter:blur(0)}
 /* ===== INTRO ===== */
-#intro{position:fixed;inset:0;z-index:99999;background:#06080f;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden}
+#intro{position:fixed;inset:0;z-index:99999;background:#06080f;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;text-align:center}
 #intro.hide{animation:introOut 1s cubic-bezier(0.76,0,0.24,1) forwards;pointer-events:none}
 @keyframes introOut{0%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(100% 0 0 0)}}
-.intro-logo-wrap{text-align:center;position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.intro-logo-wrap{text-align:center;position:relative;z-index:2}
 .intro-tag{font-family:var(--font-mono);font-size:0.6rem;color:rgba(200,241,53,0.4);letter-spacing:0.4em;text-transform:uppercase;opacity:0;animation:fadeUp 0.6s ease 0.4s forwards}
 .intro-title{font-family:var(--font-display);font-size:clamp(3rem,10vw,8rem);font-weight:800;letter-spacing:-0.04em;line-height:0.9;color:#fff;opacity:0;animation:slamUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.7s forwards}
 .intro-title span{color:var(--lime)}
-.intro-bar-wrap{width:200px;margin-top:40px;opacity:0;animation:fadeUp 0.4s ease 0.5s forwards}
+.intro-bar-wrap{width:200px;margin:40px auto 0;opacity:0;animation:fadeUp 0.4s ease 1.4s forwards}
 .intro-bar-track{height:1px;background:rgba(200,241,53,0.15);position:relative}
 .intro-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--lime);width:0;transition:width 1.2s cubic-bezier(0.16,1,0.3,1)}
-.intro-bar-pct{font-family:var(--font-mono);font-size:0.5rem;color:rgba(200,241,53,0.5);margin-top:8px;text-align:center}
+.intro-bar-pct{font-family:var(--font-mono);font-size:0.5rem;color:rgba(200,241,53,0.5);margin-top:8px;text-align:right}
 @keyframes slamUp{from{opacity:0;transform:translateY(60px) skewY(3deg)}to{opacity:1;transform:translateY(0) skewY(0)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
@@ -163,9 +161,9 @@ footer{position:relative;z-index:2;text-align:center;padding:40px;border-top:1px
 footer span{color:var(--lime)}
 
 /* ===== MODALS ===== */
-.overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(6,8,15,0.8);backdrop-filter:blur(8px)}
+.overlay{position:fixed;inset:0;background:rgba(6,8,15,0.8);backdrop-filter:blur(8px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
 .overlay.hidden{display:none}
-.modal{background:var(--surface);border:1px solid var(--border-bright);border-radius:var(--r-lg);padding:44px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;position:relative;animation:modalIn 0.4s cubic-bezier(0.16,1,0.3,1)}
+.modal{background:var(--surface);border:1px solid var(--border-bright);border-radius:var(--r-lg);padding:44px;width:100%;max-width:420px;position:relative;animation:modalIn 0.4s cubic-bezier(0.16,1,0.3,1)}
 .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--lime),transparent);border-radius:var(--r-lg) var(--r-lg) 0 0}
 @keyframes modalIn{from{opacity:0;transform:scale(0.94) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:none;transition:color 0.2s}
@@ -177,9 +175,6 @@ footer span{color:var(--lime)}
 .modal-btn:hover{transform:translateY(-2px)}
 .modal-switch{font-size:0.8rem;color:var(--text-muted);text-align:center;margin-top:16px}
 .modal-switch button{background:none;border:none;color:var(--lime);cursor:none;font-family:var(--font-body);font-size:0.8rem;text-decoration:underline}
-.auth-show-pw{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.8rem;color:var(--text-muted)}
-.auth-show-pw input{width:auto;cursor:none}
-.auth-show-pw label{cursor:none;user-select:none}
 .auth-error{font-size:0.8rem;color:var(--red);padding:8px 12px;background:rgba(255,69,69,0.06);border:1px solid rgba(255,69,69,0.15);border-radius:var(--r);margin-bottom:14px;display:none}
 .auth-error.show{display:block}
 .paywall-modal{max-width:460px}
@@ -294,43 +289,6 @@ footer span{color:var(--lime)}
     <button class="btn-primary" style="padding:6px 16px;font-size:0.78rem;" onclick="openAuth('signup')">Get Started</button>
   </div>
 </nav>
-
-<!-- AUTH + PAYWALL OVERLAYS (outside siteWrap so position:fixed is viewport-relative) -->
-<div class="overlay hidden" id="authOverlay">
-  <div class="modal">
-    <button class="modal-close" onclick="closeAuth()">✕</button>
-    <div class="modal-title" id="authTitle">Welcome back</div>
-    <div class="modal-sub" id="authSub">Sign in to continue</div>
-    <div class="auth-error" id="authErr"></div>
-    <div class="modal-row"><label class="form-label">Email</label><input type="email" class="form-input" id="authEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')handleAuth()"/></div>
-    <div class="modal-row"><label class="form-label">Password</label><input type="password" class="form-input" id="authPw" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleAuth()"/><div class="auth-show-pw"><input type="checkbox" id="authShowPw" onchange="document.getElementById('authPw').type=this.checked?'text':'password'"/><label for="authShowPw">Show password</label></div></div>
-    <button class="modal-btn" id="authBtn" onclick="handleAuth()">Sign In</button>
-    <div class="modal-switch"><span id="authSwText">No account?</span> <button onclick="toggleAuthMode()"><span id="authSwLink">Sign Up</span></button></div>
-  </div>
-</div>
-<div class="overlay hidden" id="paywallOverlay">
-  <div class="modal paywall-modal">
-    <button class="modal-close" onclick="document.getElementById('paywallOverlay').classList.add('hidden')">✕</button>
-    <div class="modal-title">You've used all free estimates</div>
-    <div class="modal-sub">Unlock unlimited access — one time, forever</div>
-    <div class="paywall-price">$4.99</div>
-    <div class="paywall-price-sub">One-time payment • Lifetime access • No subscription</div>
-    <ul class="paywall-features">
-      <li>Unlimited quarterly estimates</li>
-      <li>All 50+ countries supported</li>
-      <li>Deduction finder every time</li>
-      <li>Downloadable tax reports</li>
-      <li>Quarterly deadline reminders</li>
-    </ul>
-    <a href="https://payhip.com/b/YOUR_PRODUCT_ID" target="_blank" class="modal-btn">Pay $4.99 — Unlock Forever</a>
-    <div class="paywall-or">— OR ENTER ACCESS CODE —</div>
-    <div class="paywall-code-row">
-      <input type="text" class="form-input paywall-code-input" id="codeInput" placeholder="Enter code..." onkeydown="if(event.key==='Enter')verifyCode()"/>
-      <button class="btn-primary" style="padding:11px 18px;font-size:0.82rem;" onclick="verifyCode()">Apply</button>
-    </div>
-    <div class="paywall-error" id="paywallErr">Invalid code.</div>
-  </div>
-</div>
 
 <!-- SITE WRAPPER — starts visible, JS blurs during intro -->
 <div id="siteWrap">
@@ -499,7 +457,82 @@ footer span{color:var(--lime)}
 <footer><span>HustleTax AI</span> — Tax clarity for the global gig economy.<br>© 2025 HustleTax. Not tax advice. Always consult a local professional.</footer>
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- SUPPORT -->
+</div><!-- end siteWrap -->
+
+<!-- AUTH MODAL — outside siteWrap so position:fixed works correctly -->
+<div class="overlay hidden" id="authOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()">✕</button>
+    <div class="modal-title" id="authTitle">Welcome back</div>
+    <div class="modal-sub" id="authSub">Sign in to continue</div>
+    <div class="auth-error" id="authErr"></div>
+    <div class="modal-row"><label class="form-label">Email</label><input type="email" class="form-input" id="authEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')handleAuth()"/></div>
+    <div class="modal-row"><label class="form-label">Password</label><input type="password" class="form-input" id="authPw" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleAuth()"/></div>
+    <button class="modal-btn" id="authBtn" onclick="handleAuth()">Sign In</button>
+    <div class="modal-switch"><span id="authSwText">No account?</span> <button onclick="toggleAuthMode()"><span id="authSwLink">Sign Up</span></button></div>
+    <div class="modal-switch" id="forgotRow" style="margin-top:8px;"><button onclick="openForgot()">Forgot password?</button></div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div class="overlay hidden" id="forgotOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeForgot()">✕</button>
+    <!-- Step 1: Enter email -->
+    <div id="forgotStep1">
+      <div class="modal-title">Reset Password</div>
+      <div class="modal-sub">Enter your email and we'll send a 6-digit code</div>
+      <div class="auth-error" id="forgotErr1"></div>
+      <div class="modal-row"><label class="form-label">Email</label><input type="email" class="form-input" id="forgotEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')sendOTP()"/></div>
+      <button class="modal-btn" onclick="sendOTP()" id="sendOTPBtn">Send Reset Code</button>
+    </div>
+    <!-- Step 2: Enter OTP -->
+    <div id="forgotStep2" style="display:none;">
+      <div class="modal-title">Enter Code</div>
+      <div class="modal-sub" id="forgotStep2Sub">We sent a 6-digit code to your email</div>
+      <div class="auth-error" id="forgotErr2"></div>
+      <div class="modal-row"><label class="form-label">6-Digit Code</label><input type="text" class="form-input" id="otpInput" placeholder="123456" maxlength="6" style="letter-spacing:0.3em;font-family:var(--font-mono);font-size:1.2rem;text-align:center;" onkeydown="if(event.key==='Enter')verifyOTP()"/></div>
+      <button class="modal-btn" onclick="verifyOTP()" id="verifyOTPBtn">Verify Code</button>
+      <div class="modal-switch"><button onclick="sendOTP()">Resend code</button></div>
+    </div>
+    <!-- Step 3: New password -->
+    <div id="forgotStep3" style="display:none;">
+      <div class="modal-title">New Password</div>
+      <div class="modal-sub">Choose a new password for your account</div>
+      <div class="auth-error" id="forgotErr3"></div>
+      <div class="modal-row"><label class="form-label">New Password</label><input type="password" class="form-input" id="newPwInput" placeholder="Min 4 characters" onkeydown="if(event.key==='Enter')saveNewPassword()"/></div>
+      <div class="modal-row"><label class="form-label">Confirm Password</label><input type="password" class="form-input" id="confirmPwInput" placeholder="Same as above" onkeydown="if(event.key==='Enter')saveNewPassword()"/></div>
+      <button class="modal-btn" onclick="saveNewPassword()">Save New Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYWALL MODAL — outside siteWrap -->
+<div class="overlay hidden" id="paywallOverlay">
+  <div class="modal paywall-modal">
+    <button class="modal-close" onclick="document.getElementById('paywallOverlay').classList.add('hidden')">✕</button>
+    <div class="modal-title">You've used all free estimates</div>
+    <div class="modal-sub">Unlock unlimited access — one time, forever</div>
+    <div class="paywall-price">$4.99</div>
+    <div class="paywall-price-sub">One-time payment • Lifetime access • No subscription</div>
+    <ul class="paywall-features">
+      <li>Unlimited quarterly estimates</li>
+      <li>All 50+ countries supported</li>
+      <li>Deduction finder every time</li>
+      <li>Downloadable tax reports</li>
+      <li>Quarterly deadline reminders</li>
+    </ul>
+    <a href="https://payhip.com/b/YOUR_PRODUCT_ID" target="_blank" class="modal-btn">Pay $4.99 — Unlock Forever</a>
+    <div class="paywall-or">— OR ENTER ACCESS CODE —</div>
+    <div class="paywall-code-row">
+      <input type="text" class="form-input paywall-code-input" id="codeInput" placeholder="Enter code..." onkeydown="if(event.key==='Enter')verifyCode()"/>
+      <button class="btn-primary" style="padding:11px 18px;font-size:0.82rem;" onclick="verifyCode()">Apply</button>
+    </div>
+    <div class="paywall-error" id="paywallErr">Invalid code.</div>
+  </div>
+</div>
+
+<!-- SUPPORT — outside siteWrap so position:fixed works correctly -->
 <button id="supportBtn" onclick="toggleSupport()">
   💬<span class="dot"></span>
 </button>
@@ -528,8 +561,6 @@ footer span{color:var(--lime)}
 </div>
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-</div><!-- end siteWrap -->
-
 <script>
 // ===== CONSTANTS =====
 const VALID_CODE = 'HUSTLETAX99';
@@ -548,25 +579,6 @@ function saveUsers(u){localStorage.setItem('ht_users',JSON.stringify(u))}
 function getCurrentUser(){return localStorage.getItem('ht_current')}
 function setCurrentUser(e){e?localStorage.setItem('ht_current',e):localStorage.removeItem('ht_current')}
 function getCurrentUserData(){const e=getCurrentUser();if(!e)return null;const u=getUsers();return u[e]?{email:e,...u[e]}:null}
-
-// ===== DAILY CAP (per .cursorrules) =====
-function checkDailyLimit(userData){
-  const today=new Date().toDateString();
-  if(userData.dailyDate!==today){
-    userData.dailyCount=0;
-    userData.dailyDate=today;
-    const users=getUsers();
-    if(users[userData.email]){users[userData.email].dailyCount=0;users[userData.email].dailyDate=today;saveUsers(users)}
-  }
-  return (userData.dailyCount||0)>=10;
-}
-function incrementDaily(email){
-  const users=getUsers();
-  const today=new Date().toDateString();
-  if(users[email].dailyDate!==today){users[email].dailyCount=0;users[email].dailyDate=today}
-  users[email].dailyCount=(users[email].dailyCount||0)+1;
-  saveUsers(users);
-}
 function updateNav(){
   const u=getCurrentUserData();
   const nr=document.getElementById('navRight');
@@ -602,7 +614,7 @@ function handleAuth(){
   const users=getUsers();
   if(authMode==='signup'){
     if(users[email]){errEl.textContent='Account exists — sign in instead';errEl.classList.add('show');return}
-    users[email]={password:pw,tries:MAX_TRIES,unlimited:false,dailyCount:0,dailyDate:new Date().toDateString()};
+    users[email]={password:pw,tries:MAX_TRIES,unlimited:false};
     saveUsers(users);setCurrentUser(email);closeAuth();updateNav();showToast('Account created! ✨','ok');
   } else {
     if(!users[email]){errEl.textContent='Account not found';errEl.classList.add('show');return}
@@ -615,15 +627,9 @@ function handleAuth(){
 function handleSignOut(){setCurrentUser(null);updateNav();showToast('Signed out','ok')}
 
 // ===== PAYWALL =====
-function showPaywall(){
-  document.getElementById('paywallErr').classList.remove('show');
-  document.getElementById('codeInput').value='';
-  document.getElementById('paywallOverlay').classList.remove('hidden');
-}
 function verifyCode(){
   const code=document.getElementById('codeInput').value.trim().toUpperCase();
   const errEl=document.getElementById('paywallErr');
-  errEl.classList.remove('show');
   if(code===VALID_CODE){
     const email=getCurrentUser();
     if(email){const u=getUsers();if(u[email]){u[email].unlimited=true;saveUsers(u)}}
@@ -652,11 +658,7 @@ function scrollToTool(){
 async function handleGenerate(){
   const u=getCurrentUserData();
   if(!u){openAuth('signup');return}
-  if(!u.unlimited&&u.tries<=0){showPaywall();return}
-
-  const errEl=document.getElementById('mainErr');
-  errEl.classList.remove('show');
-  if(checkDailyLimit(u)){errEl.textContent='Daily limit reached (10 estimates/day). Try again tomorrow.';errEl.classList.add('show');return}
+  if(!u.unlimited&&u.tries<=0){document.getElementById('paywallOverlay').classList.remove('hidden');return}
 
   const country=document.getElementById('countryInput').value;
   const incomeType=document.getElementById('incomeType').value;
@@ -666,6 +668,8 @@ async function handleGenerate(){
   const expenses=document.getElementById('expenses').value.trim();
   const extra=document.getElementById('extraCtx').value.trim();
 
+  const errEl=document.getElementById('mainErr');
+  errEl.classList.remove('show');
   if(!gigIncome){errEl.textContent='Please enter your gig income';errEl.classList.add('show');return}
 
   const btn=document.getElementById('genBtn');
@@ -731,13 +735,12 @@ Additional context: ${extra||'None'}`;
     // Render results
     renderResults(parsed);
 
-    // Deduct a try and increment daily count
+    // Deduct a try
     if(!u.unlimited){
       const users=getUsers();
       if(users[u.email]){users[u.email].tries=Math.max(0,users[u.email].tries-1);saveUsers(users)}
       updateNav();
     }
-    incrementDaily(u.email);
 
     document.getElementById('resultsSection').classList.add('visible');
     setTimeout(()=>document.getElementById('resultsSection').scrollIntoView({behavior:'smooth',block:'start'}),300);
@@ -746,7 +749,7 @@ Additional context: ${extra||'None'}`;
     // Show paywall after last free use
     const freshU=getCurrentUserData();
     if(freshU&&!freshU.unlimited&&freshU.tries<=0){
-      setTimeout(showPaywall,2500);
+      setTimeout(()=>document.getElementById('paywallOverlay').classList.remove('hidden'),2500);
     }
 
   }catch(err){
@@ -879,10 +882,84 @@ function showToast(msg,type='ok'){
 }
 
 updateNav();
-</script>
 
-<script>
-// ===== CANVAS BACKGROUND =====
+// ===== FORGOT PASSWORD =====
+let forgotEmail = '';
+
+function openForgot() {
+  closeAuth();
+  document.getElementById('forgotStep1').style.display = 'block';
+  document.getElementById('forgotStep2').style.display = 'none';
+  document.getElementById('forgotStep3').style.display = 'none';
+  document.getElementById('forgotErr1').classList.remove('show');
+  document.getElementById('forgotEmail').value = '';
+  document.getElementById('forgotOverlay').classList.remove('hidden');
+}
+function closeForgot(){ document.getElementById('forgotOverlay').classList.add('hidden'); }
+
+async function sendOTP() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  const errEl = document.getElementById('forgotErr1');
+  errEl.classList.remove('show');
+  if(!email){ errEl.textContent='Enter your email'; errEl.classList.add('show'); return; }
+  const users = getUsers();
+  if(!users[email]){ errEl.textContent='No account found with this email'; errEl.classList.add('show'); return; }
+  const btn = document.getElementById('sendOTPBtn');
+  btn.textContent='Sending...'; btn.disabled=true;
+  try {
+    const r = await fetch('/api/send-otp',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email}) });
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.error||'Failed to send');
+    forgotEmail = email;
+    document.getElementById('forgotStep2Sub').textContent=`We sent a 6-digit code to ${email}`;
+    document.getElementById('forgotStep1').style.display='none';
+    document.getElementById('forgotStep2').style.display='block';
+    document.getElementById('otpInput').value='';
+    document.getElementById('forgotErr2').classList.remove('show');
+    showToast('Code sent! Check your email 📧','ok');
+  } catch(e){ errEl.textContent=e.message; errEl.classList.add('show'); }
+  btn.textContent='Send Reset Code'; btn.disabled=false;
+}
+
+async function verifyOTP() {
+  const otp = document.getElementById('otpInput').value.trim();
+  const errEl = document.getElementById('forgotErr2');
+  errEl.classList.remove('show');
+  if(!otp||otp.length!==6){ errEl.textContent='Enter the 6-digit code'; errEl.classList.add('show'); return; }
+  const btn = document.getElementById('verifyOTPBtn');
+  btn.textContent='Verifying...'; btn.disabled=true;
+  try {
+    const r = await fetch('/api/verify-otp',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:forgotEmail,otp}) });
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.error||'Invalid code');
+    document.getElementById('forgotStep2').style.display='none';
+    document.getElementById('forgotStep3').style.display='block';
+    document.getElementById('newPwInput').value='';
+    document.getElementById('confirmPwInput').value='';
+    document.getElementById('forgotErr3').classList.remove('show');
+  } catch(e){ errEl.textContent=e.message; errEl.classList.add('show'); }
+  btn.textContent='Verify Code'; btn.disabled=false;
+}
+
+function saveNewPassword() {
+  const newPw = document.getElementById('newPwInput').value.trim();
+  const confirmPw = document.getElementById('confirmPwInput').value.trim();
+  const errEl = document.getElementById('forgotErr3');
+  errEl.classList.remove('show');
+  if(!newPw){ errEl.textContent='Enter a new password'; errEl.classList.add('show'); return; }
+  if(newPw.length<4){ errEl.textContent='Min 4 characters'; errEl.classList.add('show'); return; }
+  if(newPw!==confirmPw){ errEl.textContent='Passwords do not match'; errEl.classList.add('show'); return; }
+  const users = getUsers();
+  if(users[forgotEmail]){
+    users[forgotEmail].password = newPw;
+    saveUsers(users);
+    closeForgot();
+    showToast('Password updated! ✅','ok');
+    setTimeout(()=>openAuth('login'),500);
+  } else {
+    errEl.textContent='Account not found'; errEl.classList.add('show');
+  }
+}
 (function(){
   const canvas=document.getElementById('bgCanvas');
   const ctx=canvas.getContext('2d');
@@ -946,8 +1023,7 @@ if(sb)co.observe(sb);
 // ===== PROGRESS BAR + BACK TO TOP =====
 window.addEventListener('scroll',()=>{
   const doc=document.documentElement;
-  const maxScroll=doc.scrollHeight-doc.clientHeight;
-  document.getElementById('progressBar').style.width=(maxScroll<=0?0:doc.scrollTop/maxScroll*100)+'%';
+  document.getElementById('progressBar').style.width=(doc.scrollTop/(doc.scrollHeight-doc.clientHeight)*100)+'%';
   const btn=document.getElementById('backToTop');
   doc.scrollTop>400?btn.classList.add('visible'):btn.classList.remove('visible');
 });
@@ -1028,7 +1104,7 @@ function addSpMsg(text,type){
   // Nuclear fallback — always exits at 5s no matter what
   setTimeout(exitIntro,5000);
 
-  // Fill bar + counter start at 600ms so 0→100% is visible before exit at 3.7s
+  // Fill bar + counter start at 1400ms (bar is always visible — no opacity animation)
   setTimeout(()=>{
     fill.style.width='100%';
     const start=performance.now();const dur=1200;
@@ -1039,10 +1115,10 @@ function addSpMsg(text,type){
       if(p<1)requestAnimationFrame(tick);else pct.textContent='100%';
     }
     requestAnimationFrame(tick);
-  },600);
+  },1400);
 
-  // Exit at 3.7s per .cursorrules
-  setTimeout(exitIntro,3700);
+  // Exit at 2800ms
+  setTimeout(exitIntro,2800);
 })();
 </script>
 </body>
